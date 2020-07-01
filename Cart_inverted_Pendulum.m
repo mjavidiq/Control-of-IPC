@@ -90,24 +90,37 @@ To1=eye(size(Glqr))-So1;%Te=PK*inv[I+PK]
 % xlabel('Frequency (rad/sec)');
 % ylabel('Singular Values (dB)');
 
-figure;
-set(gcf,'Position',[1000 350 500 400])
-step(To1);
-title('Step response using LQR without prefilter');
-grid on;
-xlabel('Frequency (rad/sec)');
-ylabel('Magnitude');
-hold on;
-stepinfo(To1)
+% figure;
+% set(gcf,'Position',[1000 350 500 400])
+% step(To1);
+% title('Step response using LQR without prefilter');
+% grid on;
+% xlabel('Frequency (rad/sec)');
+% ylabel('Magnitude');
+% hold on;
+% stepinfo(To1)
 
 %% Simulate cart using LQR controller
-tspan = 0:.1:20;
-x0 = [-1; 0; pi-0.5; 0]; % initial condition
-wr = [1; 0; pi+0; 0]; % reference position
-u=@(x)-G*(x - wr); % control law
-[t,y] = ode45(@(t,x)cartpend(x,m,M,L,g,d,u(x)),tspan,x0);
+% tspan = 0:.1:20;
+% x0 = [-1; 0; pi-0.5; 0]; % initial condition
+% wr = [1; 0; pi+0; 0]; % reference position
+% u=@(x)-G*(x - wr); % control law
+% [t,y] = ode45(@(t,x)cartpend(x,m,M,L,g,d,u(x)),tspan,x0);
+% 
+% figure;
+% for k=1:length(t)
+%     drawcartpend(y(k,:),m,M,L);
+% end
 
-figure;
-for k=1:length(t)
-    drawcartpend(y(k,:),m,M,L);
-end
+%% MPC Design
+Ts = 1;
+p = 10;
+m = 2;
+MPCobj = mpc(sys_ss, Ts, p, m);
+options = mpcsimopt(MPCobj);
+options.PlantInitialState = [-1 0 pi+0.1 0];
+% options.Model = sys_ss;
+
+T = 25;
+r = [0 pi/2; 1 pi];
+sim(MPCobj,T,r)
